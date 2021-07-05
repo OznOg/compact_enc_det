@@ -5,22 +5,26 @@
 # Old enough to support Ubuntu Precise.
 cmake_minimum_required(VERSION 2.8.7)
 
+option(ENABLE_UNIT_TESTS "Switch unit test on/off; default is ON" TRUE)
+
 if (WIN32)
   if (NOT EXISTS "compact_enc_det/compact_enc_det.h")
     message(FATAL_ERROR "\nCould not find source code.  Make sure you are running this script from the root of the distribution tree.")
   endif()
 
-  if (NOT EXISTS "gtest")
-    message(STATUS "Google Test not present.  Fetching from the web...")
-    file(DOWNLOAD "https://github.com/google/googletest/archive/master.zip" ${CMAKE_SOURCE_DIR}/master.zip)
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar x master.zip)
-    file(REMOVE master.zip)
-    file(RENAME googletest-master gtest)
-  endif()
+  if (ENABLE_UNIT_TESTS)
+    if (NOT EXISTS "gtest")
+      message(STATUS "Google Test not present.  Fetching from the web...")
+      file(DOWNLOAD "https://github.com/google/googletest/archive/master.zip" ${CMAKE_SOURCE_DIR}/master.zip)
+      execute_process(COMMAND ${CMAKE_COMMAND} -E tar x master.zip)
+      file(REMOVE master.zip)
+      file(RENAME googletest-master gtest)
+    endif()
 
-  # Configure gtest.
-  execute_process(COMMAND ${CMAKE_COMMAND} .
-                          WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/gtest)
+    # Configure gtest.
+    execute_process(COMMAND ${CMAKE_COMMAND} .
+                            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/gtest)
+  endif()
 endif()
 
 project(CED CXX)
@@ -69,6 +73,7 @@ add_library(ced ${CED_LIBRARY_SOURCES})
 
 target_include_directories(ced PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+if (ENABLE_UNIT_TESTS)
 # Uncomment to put CED into WHATWG-compliant mode.
 #add_definitions(-DHTML5_MODE)
 
@@ -101,3 +106,5 @@ else()
                         ${EXTRA_TARGET_LINK_LIBRARIES}
                         )
 endif()
+
+endif(ENABLE_UNIT_TESTS)
